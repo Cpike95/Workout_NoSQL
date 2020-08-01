@@ -1,32 +1,29 @@
 const express = require("express");
-// const body = require("body-parser");
-const PORT = process.env.PORT || 3030;
+const logger = require("morgan");
+const mongoose = require("mongoose");
+const compression = require('compression')
+
+const PORT = process.env.PORT || 3000
 
 const app = express();
-
-// Serve static content for the app from the "public" directory in the application directory.
-app.use(express.static("public"));
-
-// Parse application body as JSON
+// compress all responses
+app.use(compression())
+app.use(logger("dev"));
 app.use(express.urlencoded({ extended: true }));
-// app.use(body.urlencoded({ extended: false }))
-
 app.use(express.json());
 
-// Set Handlebars.
-const exphbs = require("express-handlebars");
+app.use(express.static("public"));
+app.use(require("./routes/apiRoutes.js"));
+// require("./seeders/seed");
+require("./routes/html-routes.js")(app);
 
-app.engine("handlebars", exphbs({ defaultLayout: "main" }));
-app.set("view engine", "handlebars");
+mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/workouts", {
+  useNewUrlParser: true,
+  useFindAndModify: false
+});
 
-// Import routes and give the server access to them.
-const routes = require("./controllers/burgers_controller.js");
 
-app.use(routes);
-
-// Start our server so that it can begin listening to client requests.
-app.listen(PORT, function() {
-  // Log (server-side) when our server has started
-  console.log("Server listening on: http://localhost:" + PORT);
+app.listen(PORT, () => {
+  console.log(`App running on port ${PORT}!`);
 });
 
